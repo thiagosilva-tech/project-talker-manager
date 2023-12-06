@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
@@ -34,6 +35,11 @@ app.get('/talker/:id', (req, res) => {
   }
 
   return res.status(200).json(talker);
+});
+
+app.post('/login', (req, res) => {
+  const token = crypto.randomBytes(8).toString('hex');
+  res.status(200).json({ token });
 });
 
 app.listen(PORT, () => {
