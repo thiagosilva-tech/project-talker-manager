@@ -54,4 +54,21 @@ router.put('/:id', isAtuthorized, validateTalker, (req, res) => {
   return res.status(200).json(updatedTalker);
 });
 
+router.delete('/:id', isAtuthorized, (req, res) => {
+  const { id } = req.params;
+  const talkersFilePath = path.join(__dirname, '..', 'talker.json');
+  const talkerData = fs.readFileSync(talkersFilePath, 'utf-8');
+  const talkers = JSON.parse(talkerData);
+  const talkerIndex = talkers.findIndex((t) => t.id === Number(id));
+
+  if (talkerIndex === -1) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
+  }
+
+  talkers.splice(talkerIndex, 1);
+  fs.writeFileSync(talkersFilePath, JSON.stringify(talkers));
+
+  return res.status(204).end();
+});
+
 module.exports = router;
