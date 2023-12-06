@@ -1,6 +1,8 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const isAtuthorized = require('../middlewares/isAuthorization');
+const validateTalker = require('../middlewares/validateTalker');
 
 const router = express.Router();
 
@@ -21,6 +23,16 @@ router.get('/:id', (req, res) => {
     return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   }
   return res.status(200).json(talker);
+});
+
+router.post('/', isAtuthorized, validateTalker, (req, res) => {
+  const talker = req.body;
+  const talkersFilePath = path.join(__dirname, '..', 'talker.json');
+  const talkers = JSON.parse(fs.readFileSync(talkersFilePath, 'utf8'));
+  const newTalker = { id: talkers.length + 1, ...talker };
+  talkers.push(newTalker);
+  fs.writeFileSync(talkersFilePath, JSON.stringify(talkers));
+  res.status(201).json(newTalker);
 });
 
 module.exports = router;
