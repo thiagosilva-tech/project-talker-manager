@@ -3,21 +3,33 @@ const fs = require('fs');
 const path = require('path');
 const isAtuthorized = require('../middlewares/isAuthorization');
 const validateTalker = require('../middlewares/validateTalker');
+const getTalkers = require('../utils/getTalkers');
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  const talkersFilePath = path.join(__dirname, '..', 'talker.json');
-  const talkerData = fs.readFileSync(talkersFilePath, 'utf-8');
-  const talkers = JSON.parse(talkerData);
+  const talkers = getTalkers();
   res.status(200).json(talkers);
+});
+
+router.get('/search', isAtuthorized, (req, res) => {
+  const searchTerm = req.query.q;
+  const talkers = getTalkers();
+
+  if (!searchTerm) {
+    return res.status(200).json(talkers);
+  }
+
+  const filteredTalkers = talkers
+    .filter((talker) => talker.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return res.status(200).json(filteredTalkers);
 });
   
 router.get('/:id', (req, res) => {
   const { id } = req.params;
-  const talkersFilePath = path.join(__dirname, '..', 'talker.json');
-  const talkerData = fs.readFileSync(talkersFilePath, 'utf-8');
-  const talkers = JSON.parse(talkerData);
+  console.log(id);
+  const talkers = getTalkers();
   const talker = talkers.find((t) => t.id === Number(id));
   if (!talker) {
     return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
