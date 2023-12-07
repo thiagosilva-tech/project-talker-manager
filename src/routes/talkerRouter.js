@@ -10,6 +10,8 @@ const validateAge = require('../middlewares/validateAge');
 const validateWatchedAt = require('../middlewares/validateWatchAt');
 const validateTalk = require('../middlewares/validateTalk');
 const validateDateTermAndRateTerm = require('../middlewares/validateDateTermAndRateTerm');
+const saveTalkers = require('../utils/saveTalkers');
+const validateRateTalk = require('../utils/validateRateTalk');
 
 const router = express.Router();
 
@@ -64,9 +66,7 @@ router.put('/:id',
   (req, res) => {
     const { id } = req.params;
     const { name, age, talk } = req.body;
-    const talkersFilePath = path.join(__dirname, '..', 'talker.json');
-    const talkerData = fs.readFileSync(talkersFilePath, 'utf-8');
-    const talkers = JSON.parse(talkerData);
+    const talkers = getTalkers();
     const talkerIndex = talkers.findIndex((t) => t.id === Number(id));
 
     if (talkerIndex === -1) {
@@ -75,16 +75,14 @@ router.put('/:id',
 
     const updatedTalker = { id: Number(id), name, age, talk };
     talkers[talkerIndex] = updatedTalker;
-    fs.writeFileSync(talkersFilePath, JSON.stringify(talkers));
+    saveTalkers(talkers);
 
     return res.status(200).json(updatedTalker);
   });
 
 router.delete('/:id', isAtuthorized, (req, res) => {
   const { id } = req.params;
-  const talkersFilePath = path.join(__dirname, '..', 'talker.json');
-  const talkerData = fs.readFileSync(talkersFilePath, 'utf-8');
-  const talkers = JSON.parse(talkerData);
+  const talkers = getTalkers();
   const talkerIndex = talkers.findIndex((t) => t.id === Number(id));
 
   if (talkerIndex === -1) {
@@ -92,8 +90,27 @@ router.delete('/:id', isAtuthorized, (req, res) => {
   }
 
   talkers.splice(talkerIndex, 1);
-  fs.writeFileSync(talkersFilePath, JSON.stringify(talkers));
+  saveTalkers(talkers);
 
+  return res.status(204).end();
+});
+
+router.patch('/rate/:id', isAtuthorized, (req, res) => {
+  const { id } = req.params;
+  const { rate } = req.body;
+  const talkers = getTalkers();
+  const talkerIndex = talkers.findIndex((t) => t.id === Number(id));
+  if (talkerIndex === -1) {
+    return res.status(404).json({ 
+      message: 'Pessoa palestrante não encontrada' }); 
+  }
+  const rateValidation = validateRateTalk(rate);
+  if (rateValidation) {
+    return res.status(rateValidation.status).json({ 
+      message: rateValidation.message }); 
+  }
+  talkers[talkerIndex].talk.rate = rate;
+  saveTalkers(talkers);
   return res.status(204).end();
 });
 
