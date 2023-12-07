@@ -12,6 +12,7 @@ const validateTalk = require('../middlewares/validateTalk');
 const validateDateTermAndRateTerm = require('../middlewares/validateDateTermAndRateTerm');
 const saveTalkers = require('../utils/saveTalkers');
 const validateRateTalk = require('../utils/validateRateTalk');
+const talkersDB = require('../db/talkersDB');
 
 const router = express.Router();
 
@@ -36,6 +37,20 @@ router.get('/search', isAtuthorized, haveQuery, validateDateTermAndRateTerm, (re
     filteredTalkers = filteredTalkers.filter((talker) => talker.talk.watchedAt === dateTerm);
   }
   return res.status(200).json(filteredTalkers);
+});
+
+router.get('/db', async (req, res) => {
+  const result = await talkersDB.getAllTalkers();
+  const talkers = result.map((talker) => ({
+    id: talker.id,
+    name: talker.name,
+    age: talker.age,
+    talk: {
+      watchedAt: talker.talk_watched_at,
+      rate: talker.talk_rate,
+    },
+  }));
+  return res.status(200).json(talkers);
 });
   
 router.get('/:id', (req, res) => {
