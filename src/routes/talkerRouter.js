@@ -9,7 +9,7 @@ const validateName = require('../middlewares/validateName');
 const validateAge = require('../middlewares/validateAge');
 const validateWatchedAt = require('../middlewares/validateWatchAt');
 const validateTalk = require('../middlewares/validateTalk');
-const validateRateTerm = require('../utils/validateRateTerm');
+const validateDateTermAndRateTerm = require('../middlewares/validateDateTermAndRateTerm');
 
 const router = express.Router();
 
@@ -18,14 +18,9 @@ router.get('/', (req, res) => {
   res.status(200).json(talkers);
 });
 
-router.get('/search', isAtuthorized, haveQuery, (req, res) => {
-  const { q: searchTerm, rate: rateTerm } = req.query;
+router.get('/search', isAtuthorized, haveQuery, validateDateTermAndRateTerm, (req, res) => {
+  const { q: searchTerm, rate: rateTerm, date: dateTerm } = req.query;
   const talkers = getTalkers();
-  if (rateTerm && !validateRateTerm(rateTerm)) {
-    return res.status(400).json({ 
-      message: 'O campo "rate" deve ser um número inteiro entre 1 e 5', 
-    });
-  }
   let filteredTalkers = talkers;
   if (searchTerm) {
     filteredTalkers = filteredTalkers
@@ -34,6 +29,9 @@ router.get('/search', isAtuthorized, haveQuery, (req, res) => {
   if (rateTerm) {
     filteredTalkers = filteredTalkers
       .filter((talker) => talker.talk.rate === Number(rateTerm));
+  }
+  if (dateTerm) {
+    filteredTalkers = filteredTalkers.filter((talker) => talker.talk.watchedAt === dateTerm);
   }
   return res.status(200).json(filteredTalkers);
 });
