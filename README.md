@@ -4,10 +4,10 @@ Este projeto consiste em uma API para gerenciar pessoas palestrantes. A API perm
 
 ### Tecnologias Utilizadas
 
-    - **Node.js**
-    - **Express.js**
-    - **MySQL**
-    - **JWT (JSON Web Token)**
+ - **Node.js**
+ - **Express.js**
+ - **MySQL**
+ - **JWT (JSON Web Token)**
 
 ### Requisitos Obrigatórios
 
